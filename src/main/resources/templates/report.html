@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<title>Test Report</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet"
+	href="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/report.css">
+<link rel=stylesheet
+	href="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/codemirror.css">
+<link rel=stylesheet
+	href="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/material.css">
+<script
+	src="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/codemirror.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+	src="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/fusioncharts-suite-xt/fusioncharts-suite-xt/js/fusioncharts.js"></script>
+<script type="text/javascript"
+	src="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/fusioncharts-suite-xt/fusioncharts-suite-xt/js/themes/fusioncharts.theme.fusion.js"></script>
+<script type="text/javascript"
+	src="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/fusioncharts-suite-xt/fusioncharts-suite-xt/js/themes/fusioncharts.theme.candy.js"></script>
+<style>
+.CodeMirror {
+	height: auto;
+}
+</style>
+</head>
+
+<body class="m-3">
+
+	<div class="container-fluid p-4" style="border: 2px solid black;">
+
+
+		<div class="row">
+			<div class="col-sm-2 col-md-2">
+				<div class="container ">
+					<img
+						src="https://cf-templates-622pn6o3o4gz-ap-south-1.s3.ap-south-1.amazonaws.com/Report/tech.png"
+						style="height: 100px; width: 150px">
+				</div>
+			</div>
+			<div class="col-sm-8 col-md-8 text-center content-center">
+				<br>
+				<h3 class="card-title font-weight-bold" style="margin-top: 8%">Test
+					Report</h3>
+			</div>
+			<div class="col-sm-2 col-md-2">
+				<figure class="figure float-right" th:each="p,itr : ${proctor}">
+					<img th:if=${itr.count==1} th:src="${url+'/'+p.image}"
+						height="100px" width="120px" class="figure-img rounded my-auto">
+				</figure>
+			</div>
+		</div>
+		<!-- ------------------------------------------------------- -->
+		<div class="row">
+			<div class="col-sm-1"></div>
+			<div class="col-sm-10">
+				<table class="table table-bordered table-striped">
+					<tbody>
+						<tr>
+							<td colspan="1">Candidate Name : <span
+								th:text="${data.candidateDTO.userDTO.name}"></span></td>
+							<td colspan="2">Candidate Email: <span
+								th:text="${data.candidateDTO.userDTO.email}"></span></td>
+						</tr>
+						<tr>
+							<td>Date : <span
+								th:text="${#dates.format(data.candidateDTO.userDTO.createdOn, 'dd-MMM-yyyy')}"></span></td>
+							<td>Gender: <span th:text="${data.candidateDTO.gender}"></span></td>
+							<td>Contact No: <span
+								th:text="${data.candidateDTO.userDTO.mobileNo}"></span></td>
+						</tr>
+						<tr>
+							<td colspan="2">Client Name : <span
+								th:text="${data?.candidateDTO?.userDTO?.organisation?.organisationName}"></span>
+							</td>
+							<td colspan="1">Position : <span
+								th:text="${data?.candidateDTO.positionApplied}"></span></td>
+						</tr>
+					</tbody>
+				</table>
+				<div id="chart-container" width="640" height="150"
+					class="text-center content-center"></div>
+			</div>
+			<div class="col-sm-1"></div>
+		</div>
+
+		<!-- ------------------------------------------------------- -->
+		<br>
+
+		<div class="row">
+			<div class="col-md-12">
+				<h5 class="font-weight-bold">Overall Test Interpretation</h5>
+				<ul>
+					<li>Overall Score : <span
+						th:text="${#numbers.formatDecimal(percentage, 0, 0)}"></span> %
+					</li>
+					<li th:if="${data?.proctorInfo?.toggle > 0}">Proctoring :
+						Found Some browser/tab toggle during the test, might be chance of
+						Plagiarism</li>
+				</ul>
+			</div>
+		</div>
+		<!-- ------------------------------------------------------- -->
+		<br>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-body">
+						<h4 class="text-center card-title">Total Vs Attempted
+							Questions</h4>
+						<div id="cylinder-container"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-body">
+						<h4 class="text-center card-title">Section Wise Score</h4>
+						<table id="clienttables"
+							class="table table-striped align-middle
+      table-no-bordered table-hover"
+							cellspacing="0">
+							<tbody>
+
+								<tr>
+									<th>Section</th>
+									<th>Total Marks</th>
+									<th>Obtained Marks</th>
+									<th>Percentage</th>
+								</tr>
+								<tr th:each="section : ${data?.detail}">
+									<td th:text="${section?.sectionDTO?.sectionName}"></td>
+									<td th:text="${section?.totalMarks}"></td>
+									<td th:text="${section?.marksObtained}"></td>
+									<td class="text-success"
+										th:with="result=${#numbers.formatDecimal((section?.marksObtained.doubleValue()/section?.totalMarks.doubleValue())*100, 1, 'POINT', 1, 'POINT')}">
+										<span th:text="${result}"></span>%
+									</td>
+								</tr>
+								<tr>
+									<td>Total</td>
+									<td th:text="${totalMarks}"></td>
+									<td th:text="${obtainedMarks}"></td>
+									<td class="text-success" th:if="${percentage >=60}"><span
+										th:text="${percentage}"></span> %</td>
+									<td class="text-danger" th:if="${percentage < 60}"><span
+										th:text="${#numbers.formatDecimal(percentage, 0,0)}"></span> %</td>
+								</tr>
+							</tbody>
+
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- ------------------------------------------------------- -->
+		
+<br>
+		<div class="row" >
+			
+			<div class="col-md-12 col-sm-12">
+				<div class="card">
+					<div class="card-body">
+						<div id="bar-container"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<br>
+
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<br>
+				<div class="card mt-4" style="break-before: page;"
+					th:each="iter,iStat : ${data?.detail}">
+					<div class="card-header " style="background-color: #761A7EE3;">
+						<h4 class="card-title">
+							<span th:text="${iter?.sectionDTO?.sectionName}"></span>
+						</h4>
+					</div>
+					<div class="card-body">
+
+						<div th:each="qiter,qStat : ${iter?.questionDTO}">
+							<div class="row">
+								<div class="col-md-1 col-sm-1">
+									<h5 style="font-weight: bold;">
+										<span th:text="${qStat.count}"></span> :
+									</h5>
+								</div>
+								<div class="col-md-11 col-sm-11" style="margin-left: -4%;">
+									<h5 style="font-weight: 600;" th:utext="${qiter?.question}"></h5>
+								</div>
+								<div class="col-sm-12"
+									th:if="${#lists.contains({3,4},qiter?.questionType)}">
+									<img th:src="${url+'/'+qiter?.questionImage?.questionImage}"
+										height="100px">
+								</div>
+							</div>
+							<div th:if="${#lists.contains({7},iter?.sectionDTO?.id)}"
+								class="row">
+								<div class="col-md-12 col-sm-12">
+									<h5>This section of the test judges a candidate's problem
+										solving and debugging skills. It measures their ability to
+										find logical and syntactical error in the given piece of code
+										and fix them.</h5>
+									<h5>Here a candidate has to read the code and find error
+										in it if any. If found, he/she have to fix the error by
+										writing the correct code.</h5>
+								</div>
+								<div class="col-md-6 col-sm-6">
+									<h5 class="text-primary">Original Code</h5>
+									<div th:switch="${iter?.language}">
+										<div th:case="${'java'}">
+											<textarea class="textarea-class"
+												th:text="${qiter?.codeQuestion?.question_java}"></textarea>
+										</div>
+										<div th:case="${'c'}">
+											<textarea class="textarea-class"
+												th:text="${qiter?.codeQuestion?.question_c}"></textarea>
+										</div>
+										<div th:case="${'cplus'}">
+											<textarea class="textarea-class"
+												th:text="${qiter?.codeQuestion?.question_cplus}"></textarea>
+										</div>
+										<div th:case="${'csharp'}">
+											<textarea class="textarea-class"
+												th:text="${qiter?.codeQuestion?.question_csharp}"></textarea>
+										</div>
+										<div th:case="${'python'}">
+											<textarea class="textarea-class"
+												th:text="${qiter?.codeQuestion?.question_python}"></textarea>
+										</div>
+
+									</div>
+								</div>
+								<div class="col-md-6 col-sm-6">
+									<h5 class="text-primary">Candidate's Code</h5>
+									<textarea class="textarea-class"
+										th:text="${iter?.response[qStat.index]}"></textarea>
+								</div>
+								<div class="col-md-3 col-sm-3">
+									<span class="badge badge-pill badge-info"
+										style="margin-top: 20px;"> Attempts : <span
+										th:text="${iter?.attempts[qStat.index]}"></span></span>
+								</div>
+								<div class="col-md-3 col-sm-3">
+									<span class="badge badge-pill badge-info"
+										style="margin-top: 20px;"> Time : <span
+										th:text="${iter?.time[qStat.index]/60}"> </span> Min <span
+										th:text="${iter?.time[qStat.index]%60}"> </span> Sec
+									</span>
+								</div>
+								<div class="col-md-3 col-sm-3">
+									<span class="badge badge-pill badge-info"
+										style="margin-top: 20px;"> Test Cases : <span
+										th:text="${iter?.testCases[qStat.index]/ qiter?.marks}">
+									</span>
+									</span>
+								</div>
+							</div>
+
+							<div class="row"
+								th:if="${#lists.contains({1,3},qiter?.questionType)}">
+								<div class="col-md-3">
+									<h5>
+										Option A : <span th:text="${qiter?.optionsObjective?.optionA}"></span>
+									</h5>
+								</div>
+								<div class="col-md-3">
+									<h5>
+										Option B : <span th:text="${qiter?.optionsObjective?.optionB}"></span>
+									</h5>
+								</div>
+								<div class="col-md-3">
+									<h5>
+										Option C : <span th:text="${qiter?.optionsObjective?.optionC}"></span>
+									</h5>
+								</div>
+								<div class="col-md-3">
+									<h5>
+										Option D : <span th:text="${qiter?.optionsObjective?.optionD}"></span>
+									</h5>
+								</div>
+							</div>
+							<div class="row"
+								th:if="${#lists.contains({2,4},qiter?.questionType)}">
+								<div class="col-md-3">
+									A . <img th:src="${url+'/'+qiter?.optionsImage?.optionAImage}"
+										height="80px" width="80px">
+								</div>
+								<div class="col-md-3">
+									B . <img th:src="${url+'/'+qiter?.optionsImage?.optionBImage}"
+										height="80px" width="80px">
+								</div>
+								<div class="col-md-3">
+									C . <img th:src="${url+'/'+qiter?.optionsImage?.optionCImage}"
+										height="80px" width="80px">
+								</div>
+								<div class="col-md-3">
+									D . <img th:src="${url+'/'+qiter?.optionsImage?.optionDImage}"
+										height="80px" width="80px">
+								</div>
+							</div>
+
+
+							<div class="row">
+								<div class="col-md-6"
+									th:if="${#lists.contains({1,2,3,4}, qiter?.questionType)}">
+									<h5>
+										Correct Answer : <span th:text="${qiter?.answer}"></span>
+									</h5>
+								</div>
+								<div class="col-md-6"
+									th:if="${#lists.contains({1,2,3,4}, qiter?.questionType)}">
+									<h5 class="text-success"
+										th:if="${qiter?.answer==iter?.response[qStat.index]}">
+										Candidate Response : <span
+											th:text="${iter?.response[qStat.index]}"></span>
+									</h5>
+									<h5 class="text-danger"
+										th:if="${qiter?.answer!=iter?.response[qStat.index]}">
+										Candidate Response : <span
+											th:text="${iter?.response[qStat.index]}"></span>
+									</h5>
+								</div>
+								<div class="col-md-12 col-sm-12"
+									th:if="${#lists.contains({5}, qiter?.questionType)}">
+									Candidate Response :
+									<h5 th:utext="${iter?.response[qStat.index]}"></h5>
+								</div>
+							</div>
+
+						</div>
+
+
+
+					</div>
+
+
+				</div>
+
+			</div>
+		</div>
+
+		<br>
+
+		<div class="row" style="break-before: page;">
+			<div class="col-lg-12">
+				<div class="card">
+					<div class="card-header " style="background-color: #761A7EE3;">
+						<h4 class="card-title">Web Proctor Info</h4>
+					</div>
+					<div class="card-body">
+						<div class="col-md-12">
+							<h4 class="font-weight-300">This section gives an insight of
+								the candidate's test environment which includes taking pictures
+								of the candidate periodically, checking whether the candidate
+								has switched browser/tab during the process of the test.</h4>
+						</div>
+						<div class="col-md-12">
+							<h5 class="card-title font-weight-bold text-danger"
+								th:if="${data?.proctorInfo?.toggle>0}">
+								Browser Toggle : <span th:text="${data?.proctorInfo?.toggle}"></span>
+							</h5>
+							<h5 class="card-title font-weight-bold text-success"
+								th:if="${data?.proctorInfo?.toggle<1}">Browser Toggle : 0</h5>
+						</div>
+						<div class="col-md-12">
+							<h5 class="card-title font-weight-100 ">Web Proctoring
+								Images</h5>
+						</div>
+						<figure class="figure" th:each="p : ${proctor}">
+							<img th:src="${url+'/'+p?.image}" width="150px" height="100px"
+								class="figure-img rounded pr-1">
+							<figcaption class="figure-caption" th:text="${p?.date}"></figcaption>
+						</figure>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br>
+
+	</div>
+
+</body>
+
+<script th:inline="javascript">
+var info = [[${data}]];
+
+var total_score = [[${totalMarks}]];
+var obtainedMarks = [[${obtainedMarks}]];
+
+var textareas = document.querySelectorAll(".textarea-class");
+for (var i = 0; i < textareas.length; i++) {
+  CodeMirror.fromTextArea(textareas[i], {
+    lineNumbers: true,
+  theme: 'material',
+  mode: "text/x-java",
+  readOnly: true,
+  scrollbarStyle: "null"
+  });
+}
+
+
+const dataSource1 = {
+  chart: {
+    numbersuffix: "%",
+    gaugefillmix: "{dark-20},{light+70},{dark-10}",
+    theme: "fusion"
+  },
+  colorrange: {
+    color: [
+    {
+              minvalue: "0",
+              maxvalue: "40",
+              label: "Fail",
+              code: "#FF0000"
+            },
+            {
+              minvalue: "40",
+              maxvalue: "60",
+              label: "Average",
+              code: "#FFC533"
+            },
+            {
+              minvalue: "60",
+              maxvalue: "70",
+              label: "Good",
+              code: "#87CEFA"
+            },
+            {
+              minvalue: "70",
+              maxvalue: "80",
+              label: "Very Good",
+              code: "#FFB6C1"
+            }, {
+              minvalue: "80",
+              maxvalue: "100",
+              label: "Excellent",
+              code: "#5DE85"
+            }
+    ]
+  },
+  pointers: {
+    pointer: [
+      {
+        value: [[${#numbers.formatDecimal(percentage, 0, 0)}]]
+      }
+    ]
+  }
+};
+
+const dataSource2 = {
+  chart: {
+    lowerlimit: "0",
+    upperlimit: [[${totalQuestions}]],
+    lowerlimitdisplay: "0",
+    upperlimitdisplay: [[${totalQuestions}]],
+    numbersuffix: " Question",
+    cylfillcolor: "#5D62B5",
+    plottooltext: "Attempted:"+ [[${attempted}]]+" Questions",
+    cylfillhoveralpha: "85",
+    theme: "candy"
+  },
+  value: [[${attempted}]]
+};
+
+var category = [];
+var total = [];
+var obtained = [];
+for (let index = 0; index < info.detail.length; index++) {
+        category.push({ label: info.detail[index].sectionDTO.sectionName });
+        total.push({ value: info.detail[index].totalMarks });
+        obtained.push({ value: info.detail[index].marksObtained });
+}
+
+const dataSource3 = {
+  chart: {
+    labeldisplay: "auto",
+          theme: "fusion",
+          caption: "Marks Distribution In Each Section",
+          xaxisname: "Section Name",
+          yaxisname: "Marks",
+          showvalues: "1",
+  },
+  categories: [
+          {
+            category: category
+          }
+        ],
+        dataset: [
+          {
+            seriesname: "Total Marks",
+            data: total
+          },
+          {
+            seriesname: "Obtained Marks",
+            data: obtained
+          }
+        ]  
+};
+
+
+FusionCharts.ready(function() {
+  var myChart1 = new FusionCharts({
+    type: "hlineargauge",
+    renderAt: "chart-container",
+    width: "75%",
+    height: "90%",
+    dataFormat: "json",
+    dataSource:dataSource1
+  }).render();
+
+  var myChart2 = new FusionCharts({
+    type: "cylinder",
+    renderAt: "cylinder-container",
+    width: "100%",
+    height: "400",
+    dataFormat: "json",
+    dataSource:dataSource2
+  }).render();
+
+  var myChart3 = new FusionCharts({
+    type: "scrollcolumn2d",
+    renderAt: "bar-container",
+    width: "100%",
+    height: "400",
+    dataFormat: "json",
+    dataSource:dataSource3
+  }).render();
+
+});
+</script>
+
+</html>

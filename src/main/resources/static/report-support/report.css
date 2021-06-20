@@ -1,0 +1,5 @@
+@import url('material.css');
+@import url('codemirror.css');
+.card{
+    border-radius: 10px;
+}
